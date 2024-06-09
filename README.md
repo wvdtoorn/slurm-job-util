@@ -10,7 +10,8 @@ To install the package, run:
 pip install .
 ```
 
-This will install the package and make the `sju` command available.
+This will install the package and make the `slurm-job-util` and `sju` command available.
+Both commands are equivalent.
 
 ## Usage
 

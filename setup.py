@@ -6,6 +6,7 @@ setup(
     packages=find_packages(),
     entry_points={
         "console_scripts": [
+            "slurm-job-util=slurm_job_util.main:main",
             "sju=slurm_job_util.main:main",
         ],
     },

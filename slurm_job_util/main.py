@@ -11,7 +11,9 @@ from .entry_points import (
 
 def main():
     parser = argparse.ArgumentParser(description="SLURM Job Utility")
-    subparsers = parser.add_subparsers(dest="command")
+    subparsers = parser.add_subparsers(
+        dest="command", title="Subcommands", required=True
+    )
 
     # rsync_to_remote_host subparser
     rsync_parser = subparsers.add_parser("rsync", help="Rsync to remote host")
