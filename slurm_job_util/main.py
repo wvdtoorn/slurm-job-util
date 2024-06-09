@@ -127,7 +127,7 @@ def main():
         submit_job(
             args.remote_host,
             args.remote_script,
-            **dict(arg.split("=") for arg in args.sbatch),
+            **dict(arg.split("=") for arg in args.sbatch) if args.sbatch else {},
         )
     elif args.command == "output":
         _check_remote_host(args)
