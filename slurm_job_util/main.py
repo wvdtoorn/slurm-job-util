@@ -5,6 +5,8 @@ import json
 from .utils import CONFIG_FILE
 from .entry_points import (
     init_remote_host,
+    show_config,
+    reset_config,
     submit_job,
     rsync_to_remote_host,
     get_job_output,
@@ -30,6 +32,10 @@ def main():
     )
     init_parser = subparsers.add_parser("init", help="Initialize remote host")
     init_parser.add_argument("remote_host", type=str, help="Remote host (HPC-login)")
+
+    show_config_parser = subparsers.add_parser("show", help="Show config")
+
+    reset_config_parser = subparsers.add_parser("reset", help="Reset config")
 
     # rsync_to_remote_host subparser
     rsync_parser = subparsers.add_parser("rsync", help="Rsync to remote host")
@@ -98,11 +104,13 @@ def main():
     )
 
     args = parser.parse_args()
-    if args.remote_host is None:
-        raise ValueError("Remote host is not set")
 
     if args.command == "init":
         init_remote_host(args.remote_host)
+    elif args.command == "show":
+        show_config()
+    elif args.command == "reset":
+        reset_config()
     elif args.command == "rsync":
         rsync_to_remote_host(args.remote_host, args.local_path, args.remote_path)
     elif args.command == "submit":

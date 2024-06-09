@@ -1,38 +1,8 @@
-import os
 import subprocess
-import time
-
-from typing import List, Union
+from typing import List
 from dataclasses import dataclass, field
 
-from .ssh_config import SSHConfig, SSHConfigEntry
-from .utils import logging
-
-
-@dataclass
-class RemoteHost:
-    host: str
-
-    ssh_config_path: str = os.path.expanduser("~/.ssh/config")
-
-    entry: SSHConfigEntry = None
-
-    def __post_init__(self):
-        if not self.host:
-            raise ValueError("Host is required")
-
-        ssh_config = SSHConfig(self.ssh_config_path)
-        self.entry = ssh_config.get_entry(self.host)  # raises if not found
-
-    def execute(
-        self, command: str, stdout: bool = False
-    ) -> Union[str, subprocess.CompletedProcess]:
-        result = subprocess.run(
-            ["ssh", self.host, command], capture_output=True, text=True, check=True
-        )
-        if stdout:
-            return result.stdout
-        return result
+from .utils import logging, execute_on_host
 
 
 @dataclass
@@ -96,31 +66,24 @@ class SBatchCommand:
 @dataclass
 class SlurmJob:
     job_id: int
-    host: RemoteHost
+    host: str
 
-    def cancel_slurm_job(self) -> None:
-        if self.job_status in ["PENDING", "RUNNING", "STOPPED"]:
-            subprocess.run(["ssh", self.host.host, f"scancel {self.job_id}"])
+    def execute_on_host(self, command: str) -> subprocess.CompletedProcess:
+        return execute_on_host(self.host, command)
+
+    def cancel(self) -> None:
+        if self.status in ["PENDING", "RUNNING", "STOPPED"]:
+            self.execute_on_host(f"scancel {self.job_id}")
             logging.info("Cancelled the SLURM job")
 
     @property
-    def job_status(self) -> str:
-        result = subprocess.run(
-            [
-                "ssh",
-                self.host.host,
-                f"squeue -j {self.job_id} -h -o %T",
-            ],
-            capture_output=True,
-            text=True,
-        )
-        job_status = result.stdout.strip()
-        return job_status
+    def status(self) -> str:
+        return self.execute_on_host(f"squeue -j {self.job_id} -h -o %T").stdout.strip()
 
     @property
     def is_running(self) -> bool:
-        return self.job_status == "RUNNING"
+        return self.status == "RUNNING"
 
     @property
     def has_completed(self) -> bool:
-        return self.job_status == "COMPLETED"
+        return self.status == "COMPLETED"
