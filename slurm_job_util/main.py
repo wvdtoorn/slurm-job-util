@@ -105,25 +105,38 @@ def main():
 
     args = parser.parse_args()
 
+    def _check_remote_host(args):
+        if args.remote_host is None:
+            raise argparse.ArgumentError(
+                args.remote_host,
+                "Remote host is not set. Did you run 'sju init <remote_host>'?",
+            )
+
     if args.command == "init":
+        _check_remote_host(args)
         init_remote_host(args.remote_host)
     elif args.command == "show":
         show_config()
     elif args.command == "reset":
         reset_config()
     elif args.command == "rsync":
+        _check_remote_host(args)
         rsync_to_remote_host(args.remote_host, args.local_path, args.remote_path)
     elif args.command == "submit":
+        _check_remote_host(args)
         submit_job(
             args.remote_host,
             args.remote_script,
             **dict(arg.split("=") for arg in args.sbatch),
         )
     elif args.command == "output":
+        _check_remote_host(args)
         print(get_job_output(args.remote_host, args.job_id_or_output_file))
     elif args.command == "cancel":
+        _check_remote_host(args)
         cancel_job(args.remote_host, args.job_id)
     elif args.command == "queue":
+        _check_remote_host(args)
         print(my_queue(args.remote_host))
     else:
         raise ValueError(f"Invalid command: {args.command}")
