@@ -74,10 +74,6 @@ class SBatchCommand:
             self.output = self.script + ".out"
 
     @property
-    def output(self) -> str:
-        return self.script.replace(".sbatch", ".out")
-
-    @property
     def command(self) -> str:
         command = ["sbatch"]
         if self.time:
