@@ -46,12 +46,12 @@ class SBatchCommand:
     It is the responsibility of the user to provide a valid parameter configuration.
     """
 
-    script: str = "script.sbatch"
-    time: str = "3:00:00"
-    cpus_per_task: int = 8
-    mem_per_cpu: str = "1G"
-    mem: str = "16G"
-    qos: str = "hiprio"
+    script: str
+    time: str = None
+    cpus_per_task: int = None
+    mem_per_cpu: str = None
+    mem: str = None
+    qos: str = None
     output: str = None
     export: List[str] = field(default_factory=[])  # ["VAR1=value", "VAR2=value"]
     partition: str = None
