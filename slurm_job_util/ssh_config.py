@@ -15,10 +15,11 @@ class SSHConfigEntry:
 
 
 class SSHConfig:
-    path: str = None
+    path: str = os.path.expanduser("~/.ssh/config")
 
-    def __init__(self, path):
-        self.path = path
+    def __init__(self, path=None):
+        if path is not None:
+            self.path = path
         self.exists()
 
     def exists(self):
@@ -30,13 +31,13 @@ class SSHConfig:
         backup_ssh_config_path = self.path + ".bak"
         os.system(f"cp {self.path} {backup_ssh_config_path}")
 
-    def contains_host(self, host):
+    def contains_host(self, host: str) -> bool:
         return any(line.strip() == f"Host {host}" for line in open(self.path))
 
-    def get_entry(self, host):
+    def get_entry(self, host: str) -> SSHConfigEntry:
         # read ssh config file until the entry Host host begins, read it until the next entry or the end of the file (whichever comes first) and remove empty lines
         if not self.contains_host(host):
-            raise ValueError(f"Remote host '{host}' not found in ssh config")
+            raise ValueError(f"Remote host '{host}' not found in {self.path}")
 
         entry = SSHConfigEntry(host=host)
         in_entry = False
@@ -60,7 +61,7 @@ class SSHConfig:
                         entry.proxy = line.split(" ")[1].strip()
         return entry
 
-    def remove_entry(self, host):
+    def remove_entry(self, host: str) -> None:
         with open(self.path, "r") as file:
             lines = file.readlines()
 
@@ -74,11 +75,11 @@ class SSHConfig:
                 if not in_entry:
                     file.write(line)
 
-    def add_entry(self, entry):
+    def add_entry(self, entry: SSHConfigEntry) -> None:
         with open(self.path, "a") as file:
             file.write(str(entry))
 
-    def update_config(self, entry):
+    def update_config(self, entry: SSHConfigEntry) -> None:
         self.create_backup()
         if self.contains_host(entry.host):
             self.remove_entry(entry.host)

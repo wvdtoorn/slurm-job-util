@@ -2,7 +2,7 @@ import os
 import subprocess
 import time
 
-from typing import List
+from typing import List, Union
 from dataclasses import dataclass, field
 
 from .ssh_config import SSHConfig, SSHConfigEntry
@@ -24,17 +24,15 @@ class RemoteHost:
         ssh_config = SSHConfig(self.ssh_config_path)
         self.entry = ssh_config.get_entry(self.host)  # raises if not found
 
-    def execute(self, command: str) -> str:
+    def execute(
+        self, command: str, stdout: bool = False
+    ) -> Union[str, subprocess.CompletedProcess]:
         result = subprocess.run(
-            ["ssh", self.host, command],
-            capture_output=True,
-            text=True,
+            ["ssh", self.host, command], capture_output=True, text=True, check=True
         )
-        if result.returncode != 0:
-            raise ConnectionError(
-                f"Execution of command {command} on {self.host} failed: {result.stderr}"
-            )
-        return result.stdout
+        if stdout:
+            return result.stdout
+        return result
 
 
 @dataclass
@@ -52,7 +50,6 @@ class SBatchCommand:
     mem_per_cpu: str = None
     mem: str = None
     qos: str = None
-    output: str = None
     export: List[str] = field(default_factory=[])  # ["VAR1=value", "VAR2=value"]
     partition: str = None
     gpus: int = None
@@ -61,24 +58,14 @@ class SBatchCommand:
     ntasks: int = None
     ntasks_per_node: int = None
     array: str = None
-
-    def __post_init__(self):
-        # find extension
-        extension = os.path.splitext(self.script)[1]
-
-        # check if ext is empty
-        has_ext = extension != ""
-        if has_ext:
-            self.output = self.script.replace(f"{extension}", ".out")
-        else:
-            self.output = self.script + ".out"
+    output: str = None
 
     @property
     def command(self) -> str:
         command = ["sbatch"]
         if self.time:
             command.append(f"--time={self.time}")
-        if self.cpus:
+        if self.cpus_per_task:
             command.append(f"--cpus-per-task={self.cpus_per_task}")
         if self.mem_per_cpu:
             command.append(f"--mem-per-cpu={self.mem_per_cpu}")
@@ -131,30 +118,9 @@ class SlurmJob:
         return job_status
 
     @property
-    def job_running(self) -> bool:
+    def is_running(self) -> bool:
         return self.job_status == "RUNNING"
 
     @property
-    def job_completed(self) -> bool:
+    def has_completed(self) -> bool:
         return self.job_status == "COMPLETED"
-
-    def watch_output_for_text(
-        self, watch_texts: List[str], wait_time: float = 0.01, timeout: float = 60
-    ) -> List[str]:
-        start_time = time.time()
-        while time.time() - start_time < timeout:
-            result = subprocess.run(
-                ["ssh", self.host.host, f"cat {self.job_command.output}"],
-                capture_output=True,
-                text=True,
-            )
-            output = result.stdout
-            found_texts = []
-            for line in output.splitlines():
-                for watch_text in watch_texts:
-                    if watch_text in line:
-                        found_texts.append(line)
-                if len(found_texts) == len(watch_texts):
-                    return found_texts
-            time.sleep(wait_time)
-        raise TimeoutError(f"Timed out waiting for {watch_texts}")

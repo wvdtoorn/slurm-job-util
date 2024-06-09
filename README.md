@@ -36,13 +36,11 @@ For example, to submit the job with 4 CPUs per task and 1GB memory per CPU, you 
 sju submit my-remote-host /path/to/remote/script.sbatch --kwargs cpus-per-task=4 mem-per-cpu=1G
 ```
 
-### Watch SLURM Job
+### Get SLURM Job Output
 
 ```sh
-sju watch <remote_host> <job_id> <watch_texts> [--wait_time <wait_time>] [--timeout <timeout>]
+sju output <remote_host> <job_id>
 ```
-
-Watch the job output for specific text. If the text is not found within the timeout, the command will exit with a non-zero exit code. If the text is found, the whole line containing the text will be printed to stdout.
 
 ### Cancel SLURM Job
 
