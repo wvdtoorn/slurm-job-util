@@ -25,6 +25,7 @@ def read_config_file():
 def main():
     config = read_config_file()
     default_remote_host = config.get("remote_host", None)
+    default_remote_sbatch_dir = config.get("remote_sbatch_dir", None)
 
     parser = argparse.ArgumentParser(description="SLURM Job Utility")
     subparsers = parser.add_subparsers(
@@ -32,6 +33,12 @@ def main():
     )
     init_parser = subparsers.add_parser("init", help="Initialize remote host")
     init_parser.add_argument("remote_host", type=str, help="Remote host (HPC-login)")
+    init_parser.add_argument(
+        "--remote_sbatch_dir",
+        type=str,
+        default=None,
+        help="Remote sbatch directory. Default location for local scripts to be copied to prior to submission.",
+    )
 
     show_config_parser = subparsers.add_parser("show", help="Show config")
 
@@ -63,9 +70,15 @@ def main():
         help="Remote host",
     )
     submit_parser.add_argument(
-        "script",
+        "remote_or_local_script",
         type=str,
         help="Sbatch script, can be a local file or a remote file",
+    )
+    submit_parser.add_argument(
+        "--remote_sbatch_dir",
+        type=str,
+        default=default_remote_sbatch_dir,
+        help="Remote sbatch directory. Default location for local scripts to be copied to prior to submission.",
     )
     submit_parser.add_argument(
         "--sbatch",
@@ -118,7 +131,7 @@ def main():
 
     if args.command == "init":
         _check_remote_host(args)
-        init_remote_host(args.remote_host)
+        init_remote_host(args.remote_host, args.remote_sbatch_dir)
     elif args.command == "show":
         show_config()
     elif args.command == "reset":
@@ -141,7 +154,8 @@ def main():
 
         submit_job(
             args.remote_host,
-            args.script,
+            args.remote_or_local_script,
+            args.remote_sbatch_dir,
             **sbatch_args,
         )
     elif args.command == "output":

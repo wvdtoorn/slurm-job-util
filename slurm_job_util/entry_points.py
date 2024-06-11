@@ -23,16 +23,24 @@ def show_config() -> None:
             print(json.load(f))
 
 
-def init_remote_host(remote_host: str) -> None:
+def init_remote_host(remote_host: str, remote_sbatch_dir: str = None) -> None:
 
     os.makedirs(os.path.dirname(CONFIG_FILE), exist_ok=True)
 
+    config = {"remote_host": remote_host}
+    if remote_sbatch_dir is not None:
+        config["remote_sbatch_dir"] = remote_sbatch_dir
+
     with open(CONFIG_FILE, "w") as f:
-        json.dump({"remote_host": remote_host}, f)
+        json.dump(config, f)
     logging.info(f"Successfully initialized config file at {CONFIG_FILE}")
 
 
-def rsync_to_remote_host(remote_host: str, local_path: str, remote_path: str) -> None:
+def rsync_to_remote_host(
+    remote_host: str,
+    local_path: str,
+    remote_path: str,
+) -> None:
     host = SSHConfig().get_entry(remote_host)
 
     # make local path abspath
@@ -55,7 +63,10 @@ def rsync_to_remote_host(remote_host: str, local_path: str, remote_path: str) ->
 
 
 def submit_job(
-    remote_host: str, remote_or_local_script: str, **sbatch_args
+    remote_host: str,
+    remote_or_local_script: str,
+    remote_sbatch_dir: str = "~/sbatch",
+    **sbatch_args,
 ) -> SlurmJob:
     host = SSHConfig().get_entry(remote_host)
 
@@ -69,7 +80,9 @@ def submit_job(
             )
             if user_confirmation.lower() == "y":
                 # ask for remote path
-                default_path = f"/home/{host.user}/sbatch/{os.path.basename(remote_or_local_script)}"
+                default_path = (
+                    f"{remote_sbatch_dir}/{os.path.basename(remote_or_local_script)}"
+                )
                 remote_path = input(
                     f"Enter the remote path to rsync to (no input for {default_path}): "
                 )
