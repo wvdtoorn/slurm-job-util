@@ -1,6 +1,5 @@
 import logging
 import os
-import sys
 import subprocess
 
 CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".slurm-job-util")
@@ -15,8 +14,7 @@ logging.basicConfig(
 def execute_on_host(host: str, command: str) -> subprocess.CompletedProcess:
     result = subprocess.run(["ssh", host, command], capture_output=True, text=True)
     if result.returncode != 0:
-        logging.error(
-            f"ERROR: execute_on_host command failed: {command}\n{result.stderr}"
+        raise Exception(
+            f"Failed to execute command on host! \nhost: {host}\ncommand: {command}\n{result.stderr}"
         )
-        sys.exit(1)
     return result
