@@ -2,6 +2,21 @@
 
 `slurm-job-util` is a utility package for managing SLURM jobs on remote hosts. It provides functionalities to rsync files, submit jobs, watch job outputs, cancel jobs, and view the job queue.
 
+## Features
+
+- Rsync files to and from remote hosts
+- Submit SLURM jobs, using a local or remote sbatch script
+- Watch SLURM job outputs
+- Cancel SLURM jobs
+- Show my SLURM queue
+
+## Requirements
+
+- Python 3.10 or later
+- `rsync` on local machine
+- remote host is a SLURM cluster
+- valid entry in your `~/.ssh/config` file for the login node of the remote host
+
 ## Installation
 
 To install the package, run:
@@ -53,16 +68,20 @@ sju rsync <local_path> <remote_path>
 ### Submit SLURM Job
 
 ```sh
-sju submit <remote_host> <remote_script> [--kwargs key=value ...]
+sju submit <remote_host> <remote_or_local_script> [--kwargs key=value ...]
 # or, after init
-sju submit <remote_script> [--kwargs key=value ...]
+sju submit <remote_or_local_script> [--kwargs key=value ...]
 ```
 
 Where `key=value` is a key-value pair of arguments to pass to the `sbatch` command.
-For example, to submit the job with 4 CPUs per task and 1GB memory per CPU, you can use:
+If `<remote_or_local_script>` is a local file, you will be prompted to ask if you want to rsync it to the remote host prior to submitting the job.
+
+For example, to submit a local sbatch script as a job with 4 CPUs per task and 1GB memory per CPU, you can use:
 
 ```sh
-sju submit my-remote-host /path/to/remote/script.sbatch --kwargs cpus-per-task=4 mem-per-cpu=1G
+sju submit my-remote-host /path/to/local/script.sbatch --kwargs cpus-per-task=4 mem-per-cpu=1G
+# or, after init
+sju submit /path/to/local/script.sbatch --kwargs cpus-per-task=4 mem-per-cpu=1G
 ```
 
 ### Get SLURM Job Output

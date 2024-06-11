@@ -62,7 +62,11 @@ def main():
         default=default_remote_host,
         help="Remote host",
     )
-    submit_parser.add_argument("remote_script", type=str, help="Remote script")
+    submit_parser.add_argument(
+        "script",
+        type=str,
+        help="Sbatch script, can be a local file or a remote file",
+    )
     submit_parser.add_argument(
         "--sbatch",
         nargs="*",
@@ -124,10 +128,21 @@ def main():
         rsync_to_remote_host(args.remote_host, args.local_path, args.remote_path)
     elif args.command == "submit":
         _check_remote_host(args)
+
+        sbatch_args = {}
+        if args.sbatch:
+            for arg in args.sbatch:
+                key, value = arg.split("=", 1)
+                if key == "export":
+                    # Handle export argument specially
+                    sbatch_args[key] = value.split(",")  # should be list
+                else:
+                    sbatch_args[key] = value
+
         submit_job(
             args.remote_host,
-            args.remote_script,
-            **dict(arg.split("=") for arg in args.sbatch) if args.sbatch else {},
+            args.script,
+            **sbatch_args,
         )
     elif args.command == "output":
         _check_remote_host(args)

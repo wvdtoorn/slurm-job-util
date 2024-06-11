@@ -33,36 +33,66 @@ def init_remote_host(remote_host: str) -> None:
 
 
 def rsync_to_remote_host(remote_host: str, local_path: str, remote_path: str) -> None:
-    host = SSHConfig(remote_host).get_entry(remote_host)
+    host = SSHConfig().get_entry(remote_host)
 
     # make local path abspath
     local_path = os.path.abspath(local_path)
 
     # if remote path is not abspath, make abspath using host.entry.user as home dir
     if not remote_path.startswith("/"):
-        remote_path = f"/home/{host.user}/{remote_path}"
+        if remote_path.startswith("~/"):
+            remote_path = remote_path.replace("~/", f"/home/{host.user}/")
+        else:
+            remote_path = f"/home/{host.user}/{remote_path}"
 
     # test if local_path is a file
     if not os.path.isfile(local_path):
         raise ValueError(f"Local path {local_path} is not a file")
 
-    logging.info(f"Rsyncing {local_path} to {remote_path} on {host.host}")
+    logging.info(f"Rsyncing {local_path} to {host.host}:{remote_path}")
     subprocess.run(["rsync", "-az", local_path, f"{host.host}:{remote_path}"])
     logging.info(f"Successfully rsynced {local_path} to {host.host}:{remote_path}")
 
 
-def submit_job(remote_host: str, remote_script: str, **kwargs) -> SlurmJob:
-    job_command = SBatchCommand(script=remote_script, **kwargs)
-
+def submit_job(
+    remote_host: str, remote_or_local_script: str, **sbatch_args
+) -> SlurmJob:
     host = SSHConfig().get_entry(remote_host)
+
+    # check if remote_script is a local file
+    local_check = os.path.isfile(remote_or_local_script)
+    if local_check:
+        while True:
+            # interactive user input to confirm rsync
+            user_confirmation = input(
+                "Script found locally. Do you want to rsync it, and then submit it to the remote host? (y/n): "
+            )
+            if user_confirmation.lower() == "y":
+                # ask for remote path
+                default_path = f"/home/{host.user}/sbatch/{os.path.basename(remote_or_local_script)}"
+                remote_path = input(
+                    f"Enter the remote path to rsync to (no input for {default_path}): "
+                )
+                remote_path = remote_path or default_path
+
+                execute_on_host(host.host, f"mkdir -p {os.path.dirname(remote_path)}")
+
+                rsync_to_remote_host(host.host, remote_or_local_script, remote_path)
+                remote_or_local_script = remote_path
+                break
+            elif user_confirmation.lower() != "n":
+                print("Invalid input. Please type 'y' or 'n'.")
+            else:  #'n'
+                break
+
+    # update keys of sbatch_args to be snake case
+    sbatch_args = {k.replace("-", "_"): v for k, v in sbatch_args.items()}
+    job_command = SBatchCommand(script=remote_or_local_script, **sbatch_args)
 
     logging.info(f"Submitting {job_command.script} to {host.host}")
     logging.info(f"Job command: {job_command.command}")
 
-    result = host.execute(job_command.command)
-
-    if result.returncode != 0:
-        raise ValueError(f"Failed to submit SLURM job: {result.stderr}")
+    result = execute_on_host(host.host, job_command.command)
 
     job_id = int(result.stdout.strip().split()[-1])
     logging.info(f"Successfully submitted job. Job ID: {job_id}")
@@ -112,4 +142,4 @@ def cancel_job(remote_host: str, job_id: int) -> None:
 
 def my_queue(remote_host: str) -> str:
     host = SSHConfig().get_entry(remote_host)
-    return execute_on_host(host.host, "squeue --me")
+    return execute_on_host(host.host, "squeue --me").stdout
