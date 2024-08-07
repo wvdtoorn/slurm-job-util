@@ -17,6 +17,7 @@ class SBatchCommand:
     script: str
     time: str = None
     cpus_per_task: int = None
+    cpus_per_gpu: int = None
     mem_per_cpu: str = None
     mem: str = None
     qos: str = None
@@ -37,14 +38,20 @@ class SBatchCommand:
             _command.append(f"--time={self.time}")
         if self.cpus_per_task:
             _command.append(f"--cpus-per-task={self.cpus_per_task}")
+        if self.cpus_per_gpu:
+            _command.append(f"--cpus-per-gpu={self.cpus_per_gpu}")
         if self.mem_per_cpu:
             _command.append(f"--mem-per-cpu={self.mem_per_cpu}")
+        if self.mem_per_gpu:
+            _command.append(f"--mem-per-gpu={self.mem_per_gpu}")
         if self.mem:
             _command.append(f"--mem={self.mem}")
         if self.qos:
             _command.append(f"--qos={self.qos}")
         if self.partition:
             _command.append(f"--partition={self.partition}")
+        if self.gpus:
+            _command.append(f"--gres=gpu:{self.gpus}")
         if self.output:
             _command.append(f"--output={self.output}")
         if self.export:
