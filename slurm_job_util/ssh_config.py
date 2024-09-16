@@ -11,7 +11,7 @@ class SSHConfigEntry:
     proxy: str = None
 
     def __str__(self):
-        return f"Host {self.host}\n\tHostName {self.node}\n\tPort {self.port}\n\tUser {self.user}\n\tProxyJump {self.proxy}"
+        return f"\n\nHost {self.host}\n\tHostName {self.node}\n\tPort {self.port}\n\tUser {self.user}\n\tProxyJump {self.proxy}\n\n"
 
 
 class SSHConfig:
