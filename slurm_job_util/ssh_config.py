@@ -10,8 +10,32 @@ class SSHConfigEntry:
     user: str = None
     proxy: str = None
 
+    @property
+    def node_str(self) -> str:
+        if self.node is None:
+            return ""
+        return f"\n\tHostName {self.node}"
+
+    @property
+    def port_str(self) -> str:
+        if self.port is None:
+            return ""
+        return f"\n\tPort {self.port}"
+
+    @property
+    def user_str(self) -> str:
+        if self.user is None:
+            return ""
+        return f"\n\tUser {self.user}"
+
+    @property
+    def proxy_str(self) -> str:
+        if self.proxy is None:
+            return ""
+        return f"\n\tProxyJump {self.proxy}"
+
     def __str__(self):
-        return f"Host {self.host}\n\tHostName {self.node}\n\tPort {self.port}\n\tUser {self.user}\n\tProxyJump {self.proxy}"
+        return f"\n\nHost {self.host}{self.node_str}{self.port_str}{self.user_str}{self.proxy_str}\n\n"
 
 
 class SSHConfig:
@@ -65,18 +89,28 @@ class SSHConfig:
         with open(self.path, "r") as file:
             lines = file.readlines()
 
+        new_lines = []
+
+        in_entry = False
+        for line in lines:
+            if line.strip() == f"Host {host}":
+                in_entry = True
+            elif in_entry and line.startswith("Host "):
+                in_entry = False
+            if not in_entry:
+                new_lines.append(line)
+
+        # remove trailing empty lines
+        while new_lines and new_lines[-1].strip() == "":
+            new_lines.pop()
+
         with open(self.path, "w") as file:
-            in_entry = False
-            for line in lines:
-                if line.strip() == f"Host {host}":
-                    in_entry = True
-                elif in_entry and line.strip().startswith("Host "):
-                    in_entry = False
-                if not in_entry:
-                    file.write(line)
+            file.writelines(new_lines)
 
     def add_entry(self, entry: SSHConfigEntry) -> None:
+
         with open(self.path, "a") as file:
+            file.write("\n")
             file.write(str(entry))
 
     def update_config(self, entry: SSHConfigEntry) -> None:
