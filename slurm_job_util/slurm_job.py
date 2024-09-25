@@ -1,3 +1,10 @@
+"""
+Slurm Job Util
+
+Copyright (c) 2024 by Wiep K. van der Toorn
+
+"""
+
 import subprocess
 from typing import List
 from dataclasses import dataclass, field

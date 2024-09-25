@@ -1,3 +1,10 @@
+"""
+Slurm Job Util
+
+Copyright (c) 2024 by Wiep K. van der Toorn
+
+"""
+
 from setuptools import setup, find_packages
 
 setup(
