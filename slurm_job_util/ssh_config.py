@@ -127,3 +127,38 @@ class SSHConfig:
         if self.contains_host(entry.host):
             self.remove_entry(entry.host)
         self.add_entry(entry)
+
+
+def get_ssh_entry(
+    host: str,
+    ssh_config_path: str = os.path.expanduser("~/.ssh/config"),
+) -> SSHConfigEntry:
+
+    def contains_host(path: str, host: str) -> bool:
+        return any(line.strip() == f"Host {host}" for line in open(path))
+
+    # read ssh config file until the entry Host host begins, read it until the next entry or the end of the file (whichever comes first) and remove empty lines
+    if not contains_host(ssh_config_path, host):
+        raise ValueError(f"Remote host '{host}' not found in {ssh_config_path}")
+
+    entry = SSHConfigEntry(host=host)
+    in_entry = False
+    with open(ssh_config_path, "r") as file:
+        for line in file:
+            line = line.strip()  # remove leading/trailing whitespace
+            if line == f"Host {host}":
+                in_entry = True
+            elif in_entry:
+                if line.startswith("Host "):  # trailing space to not match HostName
+                    break  # new entry
+                elif line.strip() == "":
+                    break  # new entry
+                elif line.startswith("HostName"):
+                    entry.hostname = line.split(" ")[1].strip()
+                elif line.startswith("Port"):
+                    entry.port = line.split(" ")[1].strip()
+                elif line.startswith("User"):
+                    entry.user = line.split(" ")[1].strip()
+                elif line.startswith("ProxyJump"):
+                    entry.proxy = line.split(" ")[1].strip()
+    return entry

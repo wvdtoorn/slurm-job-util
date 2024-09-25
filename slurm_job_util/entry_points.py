@@ -13,7 +13,7 @@ from typing import Union
 
 from .slurm_job import SlurmJob, SBatchCommand
 from .utils import logging, CONFIG_FILE, execute_on_host
-from .ssh_config import SSHConfig
+from .ssh_config import get_ssh_entry
 
 
 def reset_config() -> None:
@@ -48,7 +48,7 @@ def rsync_to_remote_host(
     local_path: str,
     remote_path: str,
 ) -> None:
-    host = SSHConfig().get_entry(remote_host)
+    host = get_ssh_entry(remote_host)
 
     # make local path abspath
     local_path = os.path.abspath(local_path)
@@ -75,7 +75,7 @@ def submit_job(
     remote_sbatch_dir: str = "~/sbatch",
     **sbatch_args,
 ) -> SlurmJob:
-    host = SSHConfig().get_entry(remote_host)
+    host = get_ssh_entry(remote_host)
 
     # check if remote_script is a local file
     local_check = os.path.isfile(remote_or_local_script)
@@ -128,7 +128,7 @@ def get_job_output(remote_host: str, job_id_or_output_file: Union[int, str]) -> 
     except ValueError:
         output_file = job_id_or_output_file
 
-    host = SSHConfig().get_entry(remote_host)
+    host = get_ssh_entry(remote_host)
 
     if job_id is not None:
         if not SlurmJob(job_id=job_id, host=host.host).is_running:
@@ -156,10 +156,10 @@ def get_job_output(remote_host: str, job_id_or_output_file: Union[int, str]) -> 
 
 
 def cancel_job(remote_host: str, job_id: int) -> None:
-    host = SSHConfig().get_entry(remote_host)
+    host = get_ssh_entry(remote_host)
     SlurmJob(job_id=job_id, host=host.host).cancel()  # has own logging
 
 
 def my_queue(remote_host: str) -> str:
-    host = SSHConfig().get_entry(remote_host)
+    host = get_ssh_entry(remote_host)
     return execute_on_host(host.host, "squeue --me").stdout
