@@ -12,16 +12,16 @@ from dataclasses import dataclass
 @dataclass
 class SSHConfigEntry:
     host: str
-    node: str | None = None
+    hostname: str | None = None
     port: str | None = None
     user: str | None = None
     proxy: str | None = None
 
     @property
-    def node_str(self) -> str:
-        if self.node is None:
+    def hostname_str(self) -> str:
+        if self.hostname is None:
             return ""
-        return f"\n\tHostName {self.node}"
+        return f"\n\tHostName {self.hostname}"
 
     @property
     def port_str(self) -> str:
@@ -42,7 +42,7 @@ class SSHConfigEntry:
         return f"\n\tProxyJump {self.proxy}"
 
     def __str__(self):
-        return f"\n\nHost {self.host}{self.node_str}{self.port_str}{self.user_str}{self.proxy_str}\n\n"
+        return f"\n\nHost {self.host}{self.hostname_str}{self.port_str}{self.user_str}{self.proxy_str}\n\n"
 
 
 class SSHConfig:
@@ -83,7 +83,7 @@ class SSHConfig:
                     elif line.strip() == "":
                         break  # new entry
                     elif line.startswith("HostName"):
-                        entry.node = line.split(" ")[1].strip()
+                        entry.hostname = line.split(" ")[1].strip()
                     elif line.startswith("Port"):
                         entry.port = line.split(" ")[1].strip()
                     elif line.startswith("User"):
