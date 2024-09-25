@@ -21,28 +21,28 @@ class SSHConfigEntry:
     def hostname_str(self) -> str:
         if self.hostname is None:
             return ""
-        return f"\n\tHostName {self.hostname}"
+        return f"\tHostName {self.hostname}\n"
 
     @property
     def port_str(self) -> str:
         if self.port is None:
             return ""
-        return f"\n\tPort {self.port}"
+        return f"\tPort {self.port}\n"
 
     @property
     def user_str(self) -> str:
         if self.user is None:
             return ""
-        return f"\n\tUser {self.user}"
+        return f"\tUser {self.user}\n"
 
     @property
     def proxy_str(self) -> str:
         if self.proxy is None:
             return ""
-        return f"\n\tProxyJump {self.proxy}"
+        return f"\tProxyJump {self.proxy}\n"
 
     def __str__(self):
-        return f"\n\nHost {self.host}{self.hostname_str}{self.port_str}{self.user_str}{self.proxy_str}\n\n"
+        return f"Host {self.host}\n{self.hostname_str}{self.port_str}{self.user_str}{self.proxy_str}"
 
 
 class SSHConfig:
