@@ -11,11 +11,11 @@ from dataclasses import dataclass
 
 @dataclass
 class SSHConfigEntry:
-    host: str = None
-    node: str = None
-    port: str = None
-    user: str = None
-    proxy: str = None
+    host: str
+    node: str | None = None
+    port: str | None = None
+    user: str | None = None
+    proxy: str | None = None
 
     @property
     def node_str(self) -> str:
@@ -122,6 +122,8 @@ class SSHConfig:
 
     def update_config(self, entry: SSHConfigEntry) -> None:
         self.create_backup()
+
+        assert entry.host is not None, "Host is required in SSHConfigEntry"
         if self.contains_host(entry.host):
             self.remove_entry(entry.host)
         self.add_entry(entry)

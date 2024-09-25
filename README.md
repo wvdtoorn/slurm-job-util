@@ -12,7 +12,7 @@
 
 ## Requirements
 
-- Python 3.10 or later
+- `python` >=3.12 on local machine, no additional python packages required
 - `rsync` on local machine
 - remote host is a SLURM cluster
 - valid entry in your `~/.ssh/config` file for the login node of the remote host

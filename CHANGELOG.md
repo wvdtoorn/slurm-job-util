@@ -5,7 +5,6 @@
 ### Changed
 
 - Minimal python requirement updated to 3.12
-- `SSHConfigEntry.node` renamed to `SSHConfigEntry.hostname`
 
 ### Fixed
 

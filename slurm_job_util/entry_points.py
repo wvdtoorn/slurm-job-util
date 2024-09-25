@@ -30,7 +30,7 @@ def show_config() -> None:
             print(json.load(f))
 
 
-def init_remote_host(remote_host: str, remote_sbatch_dir: str = None) -> None:
+def init_remote_host(remote_host: str, remote_sbatch_dir: str | None = None) -> None:
 
     os.makedirs(os.path.dirname(CONFIG_FILE), exist_ok=True)
 

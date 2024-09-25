@@ -6,8 +6,7 @@ Copyright (c) 2024 by Wiep K. van der Toorn
 """
 
 import subprocess
-from typing import List
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from .utils import logging, execute_on_host
 
@@ -22,21 +21,21 @@ class SBatchCommand:
     """
 
     script: str
-    time: str = None
-    cpus_per_task: int = None
-    cpus_per_gpu: int = None
-    mem_per_cpu: str = None
-    mem: str = None
-    qos: str = None
-    export: List[str] = None  # ["VAR1=value", "VAR2=value"]
-    partition: str = None
-    gpus: int = None
-    mem_per_gpu: int = None
-    nodes: int = None
-    ntasks: int = None
-    ntasks_per_node: int = None
-    array: str = None
-    output: str = None
+    time: str | None = None
+    cpus_per_task: int | None = None
+    cpus_per_gpu: int | None = None
+    mem_per_cpu: str | None = None
+    mem: str | None = None
+    qos: str | None = None
+    export: list[str] | None = None  # ["VAR1=value", "VAR2=value"]
+    partition: str | None = None
+    gpus: int | None = None
+    mem_per_gpu: int | None = None
+    nodes: int | None = None
+    ntasks: int | None = None
+    ntasks_per_node: int | None = None
+    array: str | None = None
+    output: str | None = None
 
     @property
     def command(self) -> str:
