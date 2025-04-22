@@ -16,6 +16,7 @@ class SSHConfigEntry:
     port: str | None = None
     user: str | None = None
     proxy: str | None = None
+    identity_file: str | None = None
 
     @property
     def hostname_str(self) -> str:
@@ -41,8 +42,14 @@ class SSHConfigEntry:
             return ""
         return f"\tProxyJump {self.proxy}\n"
 
+    @property
+    def identity_file_str(self) -> str:
+        if self.identity_file is None:
+            return ""
+        return f"\tIdentityFile {self.identity_file}\n"
+
     def __str__(self):
-        return f"Host {self.host}\n{self.hostname_str}{self.port_str}{self.user_str}{self.proxy_str}"
+        return f"Host {self.host}\n{self.hostname_str}{self.port_str}{self.user_str}{self.proxy_str}{self.identity_file_str}"
 
 
 class SSHConfig:
@@ -90,6 +97,8 @@ class SSHConfig:
                         entry.user = line.split(" ")[1].strip()
                     elif line.startswith("ProxyJump"):
                         entry.proxy = line.split(" ")[1].strip()
+                    elif line.startswith("IdentityFile"):
+                        entry.identity_file = line.split(" ")[1].strip()
         return entry
 
     def remove_entry(self, host: str) -> None:
@@ -161,4 +170,6 @@ def get_ssh_entry(
                     entry.user = line.split(" ")[1].strip()
                 elif line.startswith("ProxyJump"):
                     entry.proxy = line.split(" ")[1].strip()
+                elif line.startswith("IdentityFile"):
+                    entry.identity_file = line.split(" ")[1].strip()
     return entry
